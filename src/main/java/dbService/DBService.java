@@ -30,12 +30,21 @@ public class DBService {
         }
     }
 
-    public long addUser(String name) throws DBException {
+    public UsersDataSet getUser(String name) throws DBException {
+        try {
+            return (new UsersDAO(connection).get(new UsersDAO(connection).getUserId(name)));
+        } catch (SQLException e) {
+            throw new DBException(e);
+        }
+    }
+
+    public long addUser(String name, String pass) throws DBException {
         try {
             connection.setAutoCommit(false);
             UsersDAO dao = new UsersDAO(connection);
             dao.createTable();
-            dao.insertUser(name);
+            if (pass.isEmpty()) dao.insertUser(name);
+                    else dao.insertUser(name, pass);
             connection.commit();
             return dao.getUserId(name);
         } catch (SQLException e) {

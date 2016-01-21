@@ -1,6 +1,8 @@
 package servlets;
 
-import accounts.AccountService;
+import dbService.DBException;
+import dbService.DBService;
+import dbService.dataSets.UsersDataSet;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -17,9 +19,9 @@ import java.io.IOException;
  */
 public class SignUpServlet extends HttpServlet {
     @SuppressWarnings({"FieldCanBeLocal", "UnusedDeclaration"}) //todo: remove after module 2 home work
-    private final AccountService accountService;
+    private final DBService accountService;
 
-    public SignUpServlet(AccountService accountService) {
+    public SignUpServlet(DBService accountService) {
         this.accountService = accountService;
     }
 
@@ -33,6 +35,36 @@ public class SignUpServlet extends HttpServlet {
     public void doPost(HttpServletRequest request,
                        HttpServletResponse response) throws ServletException, IOException {
         //todo: module 2 home work
+        String login = request.getParameter("login");
+        String pass = request.getParameter("password");
+
+        if (login == null || pass == null) {
+            response.setContentType("text/html;charset=utf-8");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        UsersDataSet profile = null;
+        try {
+            profile = accountService.getUser(login);
+        } catch (DBException e) {
+            e.printStackTrace();
+        }
+        if (profile == null) {
+            try {
+                Long r = accountService.addUser(login,pass);
+            } catch (DBException e) {
+                e.printStackTrace();
+            }
+            response.setContentType("text/html;charset=utf-8");
+            response.getWriter().println("User added.");
+            response.setStatus(HttpServletResponse.SC_OK);
+        } else {
+                response.setContentType("text/html;charset=utf-8");
+                response.getWriter().println("Database has this user.");
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        }
+        return;
     }
 
     //change profile
